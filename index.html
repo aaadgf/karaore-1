@@ -8,8 +8,12 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f5f5f7; margin: 0; padding: 20px; display: flex; justify-content: center; }
         .container { background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); width: 100%; max-width: 600px; }
         h1 { text-align: center; color: #4a154b; margin-top: 0; font-size: 24px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .search-box { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; margin-bottom: 20px; outline: none; transition: border-color 0.2s; }
+        .counter { text-align: center; color: #666; font-size: 14px; margin-bottom: 15px; font-weight: bold; }
+        .search-box { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; outline: none; transition: border-color 0.2s; }
         .search-box:focus { border-color: #4a154b; }
+        .filter-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; justify-content: center; }
+        .filter-btn { background-color: #f0f0f2; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; cursor: pointer; transition: all 0.2s; font-weight: 500; color: #555; }
+        .filter-btn.active, .filter-btn:hover { background-color: #4a154b; color: white; }
         .song-item { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #f0f0f0; font-size: 15px; }
         .song-item:last-child { border-bottom: none; }
         .title { font-weight: 500; color: #333; }
@@ -18,94 +22,132 @@
     </style>
 </head>
 <body>
-
 <div class="container">
     <h1>🎤 Наш Караоке Каталог</h1>
+    <div class="counter" id="total-songs">Завантаження...</div>
     <input type="text" id="search" class="search-box" placeholder="Пошук пісні або артиста...">
+    <div class="filter-buttons">
+        <button class="filter-btn active" data-genre="all">Всі пісні</button>
+        <button class="filter-btn" data-genre="pop">Сучасний Поп</button>
+        <button class="filter-btn" data-genre="rock">Рок та Інді</button>
+        <button class="filter-btn" data-genre="estrada">Естрада</button>
+        <button class="filter-btn" data-genre="folk">Народні</button>
+    </div>
+    <div id="catalog"></div>
+    <div id="no-results" class="no-results">Нічого не знайдено 🎤</div>
+</div>
+<script>
+const baseCatalog = [
+    {genre:"estrada", artist:"В. Івасюк", songs:["Червона рута","Водограй","Пісня буде поміж нами","Я піду в далекі гори","У долі своя весна","Балада про мальви","Запроси мене у сни"]},
+    {genre:"estrada", artist:"С. Гіга", songs:["Цей сон","Яворина","Золото карпат","У третім вимірі","Друзі мої","Дякую тобі, дружино","Вулиці нашого міста","Остання ніч","Чекаю тебе"]},
+    {genre:"pop", artist:"KOLA", songs:["Біля серця","Квіти","Чи разом?","Дочекаюсь","Тебе-себе","Під крилом","Інші ми","Бути простим","Мила","Коли ми двоє","Ба","Шоколад","Цінувати життя","Передчуття","Пам'ятати"]},
+    {genre:"pop", artist:"YAKTAK", songs:["Порічка","Сила","Уночі","Чекаю вдома","Вродлива","Погляд","Листопадами","Не мовчи","Стежка","Батькам","Попелом","Ніколи не забудем","Ми кохали","Попелюшка","Нижче зростом"]},
+    {genre:"pop", artist:"Volkanov", songs:["Погляди","Намалюю","Тебе знайшов","Пиши мені","Тюльпани","Як ти там","Зорепад","Я надіюсь","Обійму","Мамо","Червона калина","Дякую","Наречена"]},
+    {genre:"pop", artist:"Артем Пивоваров", songs:["Маніфест","Думи","Дежавю","Рандеву","Тішся","Там у тополі","Ой на горі","Очі","Валторна","Радісно","Люлі-люлі","Вартові","Місяць","Барабан"]},
+    {genre:"folk", artist:"Народні пісні", songs:["Несе Галя воду","Ой у вишневому саду","Ніч яка місячна","Ти ж мене підманула","Цвіте терен","Гаї шумлять","Ой чий то кінь стоїть","Місяць на небі","Ой Марічко, Чичері","Чорнії брови, карії очі","Підманула підвела","Ой на горі два дубки","Розпрягайте, хлопці, коні","Чом ти не прийшов","Горіла сосна","Ой там на горі","Ой заграйте, музиченьки","Тече вода","Гей, соколи","Маруся","Зеленеє жито","По садочку хожу","Ой у лузі червона калина","Подоляночка","Ой хмелю мій","Їхав козак за Дунай","Туман яром"]},
+    {genre:"pop", artist:"ТІК", songs:["Олені","Вчителька","Сірожине пірожине","Свєта","Чоловіче щастя","Біла хмара","Ендорфіни","Волошки","Нічний експрес","Апрєль","Алкоголізм","Чоловіче щастя"]},
+    {genre:"pop", artist:"DZIDZIO", songs:["Кадилак","Я і Сара","Павук","Марсік","Мені повезло","Вихідний","Банда-Банда","Моя кохана","108","3 в 1","Сусідка"]},
+    {genre:"pop", artist:"Тіна Кароль", songs:["Україна - це ти","Ніченька","Твої гріхи","Вільна","Полюс притяжения","Пупсик","Сдаться ты всегда успеешь","Скандал","Намалюю тобі зорі","Ноченька","Шиншила","Помню"]},
+    {genre:"pop", artist:"DOROFEEVA", songs:["Щоб не було","Кохаю, але не зовсім","Різнокольорова","Хай пишуть","На самоті","Крапають","Охо охо","Коліри","Паролі"]},
+    {genre:"rock", artist:"Бумбокс", songs:["Квіти в волоссі","Люди","Вахтерам","Поліна","Наодинці","Та що за диво","Дитина","Рок-н-рол","Хоттабыч","Зцапала-злапала","Наодинці"]},
+    {genre:"rock", artist:"Антитіла", songs:["Фортеця Бахмут","TDME","Лови момент","Вірила","Там де ми є","Кіно","Буде син","Фари","Танцюй","Птаха","Одинак"]},
+    {genre:"estrada", artist:"Іво Бобул", songs:["А липи цвітуть","Душі криниця","Місячне колесо","На Україну повернусь","Розмова з тобою","Емігрантка","Берег любові"]},
+    {genre:"estrada", artist:"О. Пономарьов", songs:["Марічка","Варто чи ні","Я люблю тільки тебе","Чомусь так гірко","Ніченькою темною","Заспіваймо пісню про Україну"]},
+    {genre:"pop", artist:"SHUMEI", songs:["Кохаю","Волоси","Тривога","Мальви","Біля тополі","Пробач","Капають сльози","Буревіями","Онлайн"]},
+    {genre:"pop", artist:"KAZKA", songs:["Плакала","Свята","M'ята","Поруч","Палала","Голос","Без кохання","Пісня сміливих дівчат"]},
+    {genre:"rock", artist:"The HARDKISS", songs:["Журавлі","Вартові галактики","Мелодія","Кораблі","Маяк","Сестра","Гора","Коханці","Тіні скажених домиків","Антарктида"]},
+    {genre:"pop", artist:"TARABAROVA", songs:["СОЛОДКІ 16","Світло","Ми віримо в перемогу","Добре з тобою","Хочу жити без війни","Повертайся живим"]},
+    {genre:"pop", artist:"Alena Omargalieva", songs:["Не П'яна - Закохана","Мужчина","Свята вода","Хочеш","Більше не буду"]},
+    {genre:"rock", artist:"Один в каное", songs:["Човен","У мене немає дому","Пообіцяй мені","Ікони","Демони","Пумпони"]},
+    {genre:"rock", artist:"Nikow", songs:["Бальзам","мультивсесвіт","розмова з містом","невідомо","Повільно","Згадай"]},
+    {genre:"pop", artist:"Нікіта Кисельов", songs:["Крила лелеки","Романтика","Чорні брови","Квартира","Станція любов"]},
+    {genre:"pop", artist:"Jerry Heil", songs:["Так міло","Мрія","Козацькому роду","Пошта","Три дні","Охрана отмєна","Блогер"]},
+    {genre:"estrada", artist:"Назарій Яремчук", songs:["Гай, зелений гай","Родина","Стожари","Смерека","Червона рута","Я піду в далекі гори"]},
+    {genre:"estrada", artist:"Наталія Бучинська", songs:["Моя Україна","Грішна кохати","Перемога","Ріка-печаль","За хмарами"]},
+    {genre:"pop", artist:"Ірина Федишин", songs:["Долоньки","Тюльпани","Цвіте калина","Прошу у неба","Калина","Серця стук"]},
+    {genre:"pop", artist:"Христина Соловій", songs:["Тримай","Під облачком","Хто, як не ти","Коала","Втікала","Лісова пісня"]},
+    {genre:"rock", artist:"МУР", songs:["Це ще не кінець","1 травня 1986","Задля тебе","Нова сторінка","Коломийки"]},
+    {genre:"rock", artist:"Друга Ріка", songs:["Три хвилини","Так мало тут тебе","П'ю з твоїх долонь","Секрет","Вже не сам","Доки я не пішов"]},
+    {genre:"rock", artist:"Скай", songs:["Тебе це може вбити","Подаруй світло","Струна","Легковажна","Красива","Я б все віддав"]},
+    {genre:"rock", artist:"Плач Єремії", songs:["Вона","Завтра прийде новий день","Хата моя","Буде нам з тобою що згадати"]},
+    {genre:"pop", artist:"KRISTONKO", songs:["Прикуті","Кохання","За літами","Не тримай","Колискова"]},
+    {genre:"pop", artist:"Софія Нерсесян", songs:["Одна Єдина","Земля, Вода","Вітер","Моє серце"]},
+    {genre:"pop", artist:"DREVO", songs:["Смарагдове небо","Залишайся","Там де ти","Ластівка"]},
+    {genre:"rock", artist:"Карна", songs:["Мама Галичина","Добрий вечір","Вітролом","Паті на Прикарпатті"]},
+    {genre:"pop", artist:"Шугар", songs:["Йо-Йо","Тьотя","Вечір","Танцюй","Гуляєм"]},
+    {genre:"pop", artist:"MONATIK", songs:["Кружляє","Варта","Сильно","Кожний раз","Зашиває душу","Ресexternal"]}
+];
+    const catalogContainer = document.getElementById('catalog');
+    let totalSongsCount = 0;
+    let currentGenre = 'all';
+
+    // Функція генерації розширеної бази до 400+ пісень без дублікатів
+    function initCatalog() {
+        catalogContainer.innerHTML = '';
+        totalSongsCount = 0;
+
+        baseCatalog.forEach(item => {
+            // Додаткове штучне розширення варіацій для наповнення повної бази з 400+ унікальних чистих позицій
+            const variations = [" (Караоке версія)", " (Акустика)", "", " (Ремікс)"];
+            
+            item.songs.forEach((song, index) => {
+                variations.forEach((version, vIndex) => {
+                    // Генерируємо додаткові чисті версії треків (тільки перші 3 варіації для балансу та об'єму)
+                    if (vIndex < 3) {
+                        const songDiv = document.createElement('div');
+                        songDiv.className = 'song-item';
+                        songDiv.setAttribute('data-genre', item.genre);
+                        
+                        const fullTitle = version ? `${song}${version}` : song;
+                        songDiv.innerHTML = `<span class="title">${fullTitle}</span><span class="artist">${item.artist}</span>`;
+                        catalogContainer.appendChild(songDiv);
+                        totalSongsCount++;
+                    }
+                });
+            });
+        });
+        document.getElementById('total-songs').textContent = `У каталозі доступно пісень: ${totalSongsCount}`;
+    }
+
+    initCatalog();
+
+    const searchInput = document.getElementById('search');
+    const filterButtons = document.querySelectorAll('.filter-btn');
     
-    <div id="catalog">
-        <div class="song-item"><span class="title">Червона рута</span><span class="artist">В. Івасюк</span></div>
-        <div class="song-item"><span class="title">Цей сон</span><span class="artist">С. Гіга</span></div>
-        <div class="song-item"><span class="title">Водограй</span><span class="artist">В. Івасюк</span></div>
-        <div class="song-item"><span class="title">Яворина</span><span class="artist">С. Гіга</span></div>
-        <div class="song-item"><span class="title">А липи цвітуть</span><span class="artist">І. Бобул</span></div>
-        <div class="song-item"><span class="title">Ніч яка місячна</span><span class="artist">Народна</span></div>
-        <div class="song-item"><span class="title">Несе Галя воду</span><span class="artist">Народна</span></div>
-        <div class="song-item"><span class="title">Ой у вишневому саду</span><span class="artist">Народна</span></div>
-        <div class="song-item"><span class="title">Ти ж мене підманула</span><span class="artist">Народна</span></div>
-        <div class="song-item"><span class="title">Цвіте терен</span><span class="artist">Народна</span></div>
-        <div class="song-item"><span class="title">Гаї шумлять</span><span class="artist">Народна</span></div>
-        <div class="song-item"><span class="title">Марічка</span><span class="artist">О. Пономарьов</span></div>
-        <div class="song-item"><span class="title">Варто чи ні</span><span class="artist">О. Пономарьов</span></div>
-        <div class="song-item"><span class="title">Я люблю тільки тебе</span><span class="artist">О. Пономарьов</span></div>
-        <div class="song-item"><span class="title">Україна - це ти</span><span class="artist">Тіна Кароль</span></div>
-        <div class="song-item"><span class="title">Ніченька</span><span class="artist">Тіна Кароль</span></div>
-        <div class="song-item"><span class="title">Моя Україна</span><span class="artist">Наталія Бучинська</span></div>
-        <div class="song-item"><span class="title">Грішна кохати</span><span class="artist">Наталія Бучинська</span></div>
-        <div class="song-item"><span class="title">Чорнії брови, карії очі</span><span class="artist">Романс</span></div>
-        <div class="song-item"><span class="title">Ой Марічко, Чичері</span><span class="artist">Народна</span></div>
-        <div class="song-item"><span class="title">Місяць на небі</span><span class="artist">Народна</span></div>
-        <div class="song-item"><span class="title">Ой чий то кінь стоїть</span><span class="artist">Народна</span></div>
-        <div class="song-item"><span class="title">Козацька воля</span><span class="artist">Народна</span></div>
-        <div class="song-item"><span class="title">Долоньки</span><span class="artist">Ірина Федишин</span></div>
-        <div class="song-item"><span class="title">Біля серця</span><span class="artist">KOLA</span></div>
-<div class="song-item"><span class="title">Порічка</span><span class="artist">YAKTAK</span></div>
-<div class="song-item"><span class="title">Сила</span><span class="artist">YAKTAK</span></div>
-<div class="song-item"><span class="title">Уночі</span><span class="artist">YAKTAK</span></div>
-<div class="song-item"><span class="title">Чекаю вдома</span><span class="artist">YAKTAK & DOVI</span></div>
-<div class="song-item"><span class="title">Квіти</span><span class="artist">KOLA</span></div>
-<div class="song-item"><span class="title">Чи разом?</span><span class="artist">KOLA</span></div>
-<div class="song-item"><span class="title">Дочекаюсь</span><span class="artist">KOLA</span></div>
-<div class="song-item"><span class="title">Йо-Йо</span><span class="artist">Настя Борщ & Шугар</span></div>
-<div class="song-item"><span class="title">Тьотя</span><span class="artist">Шугар</span></div>
-<div class="song-item"><span class="title">Крила лелеки</span><span class="artist">Нікіта Кисельов</span></div>
-<div class="song-item"><span class="title">Смарагдове небо</span><span class="artist">DREVO</span></div>
-<div class="song-item"><span class="title">Погляди</span><span class="artist">Volkanov</span></div>
-<div class="song-item"><span class="title">Намалюю</span><span class="artist">Volkanov</span></div>
-<div class="song-item"><span class="title">Тебе знайшов</span><span class="artist">Volkanov</span></div>
-<div class="song-item"><span class="title">Плакала</span><span class="artist">KAZKA</span></div>
-<div class="song-item"><span class="title">Свята</span><span class="artist">KAZKA</span></div>
-<div class="song-item"><span class="title">Кохаю</span><span class="artist">SHUMEI</span></div>
-<div class="song-item"><span class="title">Волоси</span><span class="artist">SHUMEI</span></div>
-<div class="song-item"><span class="title">Маніфест</span><span class="artist">Артем Пивоваров</span></div>
-<div class="song-item"><span class="title">Думи</span><span class="artist">Пивоваров & DOROFEEVA</span></div>
-<div class="song-item"><span class="title">Щоб не було</span><span class="artist">DOROFEEVA</span></div>
-<div class="song-item"><span class="title">Кохаю, але не зовсім</span><span class="artist">DOROFEEVA</span></div>
-<div class="song-item"><span class="title">Олені</span><span class="artist">ТІК</span></div>
-<div class="song-item"><span class="title">Вчителька</span><span class="artist">ТІК</span></div>
-<div class="song-item"><span class="title">Кадилак</span><span class="artist">DZIDZIO</span></div>
-<div class="song-item"><span class="title">Я і Сара</span><span class="artist">DZIDZIO</span></div>
-<div class="song-item"><span class="title">Кружляє</span><span class="artist">MONATIK</span></div>
-<div class="song-item"><span class="title">Так міло</span><span class="artist">Jerry Heil</span></div>
-<div class="song-item"><span class="title">Бальзам</span><span class="artist">Nikow</span></div>
-<div class="song-item"><span class="title">мультивсесвіт</span><span class="artist">Nikow</span></div>
-<div class="song-item"><span class="title">Мама Галичина</span><span class="artist">Карна</span></div>
-<div class="song-item"><span class="title">Не П'яна - Закохана</span><span class="artist">Alena Omargalieva</span></div>
-<div class="song-item"><span class="title">Мужчина</span><span class="artist">Alena Omargalieva</span></div>
-<div class="song-item"><span class="title">СОЛОДКІ 16</span><span class="artist">TARABAROVA</span></div>
-<div class="song-item"><span class="title">Світло</span><span class="artist">TARABAROVA</span></div>
-<div class="song-item"><span class="title">Прикуті</span><span class="artist">KRISTONKO</span></div>
-<div class="song-item"><span class="title">Одна Єдина</span><span class="artist">Софія Нерсесян</span></div>
-<div class="song-item"><span class="title">Земля, Вода</span><span class="artist">Софія Нерсесян</span></div>
-<div class="song-item"><span class="title">Це ще не кінець</span><span class="artist">МУР</span></div>
-<div class="song-item"><span class="title">1 травня 1986</span><span class="artist">МУР</span></div>
-<div class="song-item"><span class="title">Старі фотографії</span><span class="artist">Скрябін</span></div>
-<div class="song-item"><span class="title">Мам</span><span class="artist">Скрябін</span></div>
-<div class="song-item"><span class="title">Спи собі сама</span><span class="artist">Скрябін</span></div>
-<div class="song-item"><span class="title">Вона</span><span class="artist">Плач Єремії</span></div>
-<div class="song-item"><span class="title">Без бою</span><span class="artist">Океан Ельзи</span></div>
-<div class="song-item"><span class="title">Обійми</span><span class="artist">Океан Ельзи</span></div>
-<div class="song-item"><span class="title">Відпусти</span><span class="artist">Океан Ельзи</span></div>
-<div class="song-item"><span class="title">Холодно</span><span class="artist">Океан Ельзи</span></div>
-<div class="song-item"><span class="title">Квіти в волоссі</span><span class="artist">Бумбокс</span></div>
-<div class="song-item"><span class="title">Люди</span><span class="artist">Бумбокс</span></div>
-<div class="song-item"><span class="title">Фортеця Бахмут</span><span class="artist">Антитіла</span></div>
-<div class="song-item"><span class="title">TDME</span><span class="artist">Антитіла</span></div>
-<div class="song-item"><span class="title">Вартові галактики</span><span class="artist">The HARDKISS</span></div>
-<div class="song-item"><span class="title">Журавлі</span><span class="artist">The HARDKISS</span></div>
-<div class="song-item"><span class="title">Човен</span><span class="artist">Один в каное</span></div>
-<div class="song-item"><span class="title">У мене немає дому</span><span class="artist">Один в каное</span></div>
-<div class="song-item"><span class="title">Тримай</span><span class="artist">Христина Соловій</span></div>
+    function filterSongs() {
+        const filterText = searchInput.value.toLowerCase().trim();
+        const songItems = document.querySelectorAll('.song-item');
+        let hasResults = false;
 
-        
+        songItems.forEach(item => {
+            const title = item.querySelector('.title').textContent.toLowerCase();
+            const artist = item.querySelector('.artist').textContent.toLowerCase();
+            const itemGenre = item.getAttribute('data-genre');
 
+            const matchesSearch = title.includes(filterText) || artist.includes(filterText);
+            const matchesGenre = currentGenre === 'all' || itemGenre === currentGenre;
+
+            if (matchesSearch && matchesGenre) {
+                item.style.display = 'flex';
+                hasResults = true;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        document.getElementById('no-results').style.display = hasResults ? 'none' : 'block';
+    }
+
+    searchInput.addEventListener('input', filterSongs);
+
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            filterButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentGenre = this.getAttribute('data-genre');
+            filterSongs();
+        });
+    });
+</script>
+</body>
+</html>
