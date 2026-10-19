@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Караоке Каталог</title>
+<style>
+body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
+.card { background: white; padding: 20px; border-radius: 8px; max-width: 600px; margin: auto; }
+h1 { color: #4a148c; text-align: center; }
+input { width: 95%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; }
+ul { list-style: none; padding: 0; }
+li { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+.artist { color: #666; font-size: 0.9em; }
+</style>
+</head>
+<body>
+<div class="card">
+<h1>🎤 Наш Караоке Каталог</h1>
+<input type="text" id="search" placeholder="Пошук пісні або артиста..." oninput="search()">
+<ul id="list"></ul>
+</div>
+<script>
+const songs = [
+  {t: "Червона рута", a: "В. Івасюк"},
+  {t: "Цей сон", a: "С. Гіга"},
+  {t: "Водограй", a: "В. Івасюк"},
+  {t: "Біля серця", a: "KOLA"},
+  {t: "Порічка", a: "YAKTAK"},
+  {t: "Старі фотографії", a: "Скрябін"},
+  {t: "Вона", a: "Плач Єремії"},
+  {t: "Без бою", a: "Океан Ельзи"},
+  {t: "Обійми", a: "Океан Ельзи"},
+  {t: "Тримай", a: "Христина Соловій"}
+];
+function search() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const html = songs.filter(s => s.t.toLowerCase().includes(q) || s.a.toLowerCase().includes(q))
+    .map(s => `<li><span>${s.t}</span><span class="artist">${s.a}</span></li>`).join('');
+  document.getElementById('list').innerHTML = html;
+}
+search();
+</script>
+</body>
+</html>
