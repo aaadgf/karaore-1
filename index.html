@@ -1,201 +1,111 @@
-# Let's inspect the actual content or make a comprehensive index.html with way more songs.
-# The user claims "в файлі лише 10 файлів" (meaning only 10 songs/lines in the file).
-# Let's write a python script to generate a massive index.html with over 150-200 clean Ukrainian karaoke songs to satisfy them.
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Наш Караоке Каталог</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f5f5f7; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); width: 100%; max-width: 600px; }
+        h1 { text-align: center; color: #4a154b; margin-top: 0; font-size: 24px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .search-box { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; margin-bottom: 20px; outline: none; transition: border-color 0.2s; }
+        .search-box:focus { border-color: #4a154b; }
+        .song-item { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid #f0f0f0; font-size: 15px; }
+        .song-item:last-child { border-bottom: none; }
+        .title { font-weight: 500; color: #333; }
+        .artist { color: #888; font-size: 14px; text-align: right; margin-left: 10px; }
+        .no-results { text-align: center; color: #999; display: none; padding: 20px; }
+    </style>
+</head>
+<body>
 
-songs = [
-    {"title": "Червона рута", "artist": "В. Івасюк"},
-    {"title": "Водограй", "artist": "В. Івасюк"},
-    {"title": "Цей сон", "artist": "С. Гіга"},
-    {"title": "Ява", "artist": "YAKTAK & KOLA"},
-    {"title": "Порічка", "artist": "YAKTAK & differentiation"},
-    {"title": "Біля серця", "artist": "KOLA"},
-    {"title": "Старі фотографії", "artist": "Скрябін"},
-    {"title": "Мам", "artist": "Скрябін"},
-    {"title": "Спи собі сама", "artist": "Скрябін"},
-    {"title": "Без бою", "artist": "Океан Ельзи"},
-    {"title": "Обійми", "artist": "Океан Ельзи"},
-    {"title": "Відпусти", "artist": "Океан Ельзи"},
-    {"title": "Вона", "artist": "Плач Єремії"},
-    {"title": "Тримай", "artist": "Христина Соловій"},
-    {"title": "Дежавю", "artist": "Артем Пивоваров"},
-    {"title": "Рандеву", "artist": "Артем Пивоваров"},
-    {"title": "Думи", "artist": "Артем Пивоваров & DOROFEEVA"},
-    {"title": "Щоб не було", "artist": "DOROFEEVA"},
-    {"title": "Кохаю", "artist": "Volkanov"},
-    {"title": "Намалюю", "artist": "Volkanov"},
-    {"title": "Тебе одну", "artist": "Volkanov"},
-    {"title": "Покохала", "artist": "Domiy"},
-    {"title": "Ангели", "artist": "Domiy"},
-    {"title": "Калуські вечорниці", "artist": "KALUSH feat. Tember Blanche"},
-    {"title": "Стефанія", "artist": "KALUSH"},
-    {"title": "Олені", "artist": "ТІК"},
-    {"title": "Вчителька", "artist": "ТІК"},
-    {"title": "Сірожине пірожине", "artist": "ТІК"},
-    {"title": "Свята", "artist": "KAZKA"},
-    {"title": "Плакала", "artist": "KAZKA"},
-    {"title": "М'ята", "artist": "KAZKA"},
-    {"title": "Він чекає на неї", "artist": "Олександр Пономарьов"},
-    {"title": "Я люблю тільки тебе", "artist": "Олександр Пономарьов"},
-    {"title": "Варто чи ні", "artist": "Олександр Пономарьов"},
-    {"title": "А липи цвітуть", "artist": "Іво Бобул"},
-    {"title": "Душі криниця", "artist": "Іво Бобул"},
-    {"title": "Родина", "artist": "Назарій Яремчук"},
-    {"title": "Стожари", "artist": "Назарій Яремчук"},
-    {"title": "Гай, зелений гай", "artist": "Назарій Яремчук"},
-    {"title": "Золото Карпат", "artist": "Степан Гіга"},
-    {"title": "У коханні нема неправди", "artist": "Степан Гіга"},
-    {"title": "Чорнобривці", "artist": "Костянтин Огнєвой"},
-    {"title": "Пісня про рушник", "artist": "Дмитро Гнатюк"},
-    {"title": "Ніч яка місячна", "artist": "Народна"},
-    {"title": "Несе Галя воду", "artist": "Народна"},
-    {"title": "Ой у вишневому саду", "artist": "Народна"},
-    {"title": "Ти ж мене підманула", "artist": "Народна"},
-    {"title": "Цвіте терен", "artist": "Народна"},
-    {"title": "Розпрягайте, хлопці, коней", "artist": "Народна"},
-    {"title": "Ой Марічко, Чичері", "artist": "Народна"},
-    {"title": "Горіла сосна, палала", "artist": "Народна"},
-    {"title": "Маруся раз, два, три", "artist": "Народна"},
-    {"title": "Квітка душа", "artist": "Ніна Матвієнко"},
-    {"title": "Дикі танці", "artist": "Руслана"},
-    {"title": "Знаєш як болить", "artist": "Друга Ріка"},
-    {"title": "Три хвилини", "artist": "Друга Ріка"},
-    {"title": "Тебе", "artist": "Скай"},
-    {"title": "Подаруй світло", "artist": "Скай"},
-    {"title": "Квіти в волоссі", "artist": "Бумбокс"},
-    {"title": "Вахтерам (Укр версія)", "artist": "Бумбокс"},
-    {"title": "Люди", "artist": "Бумбокс"},
-    {"title": "Там де ми є", "artist": "Антитіла"},
-    {"title": "Лови момент", "artist": "Антитіла"},
-    {"title": "Вірила", "artist": "Антитіла"},
-    {"title": "Фортеця Бахмут", "artist": "Антитіла"},
-    {"title": "Чекаю. Цьом", "artist": "DZIDZIO & Оля Цибульська"},
-    {"title": "Вихідний", "artist": "DZIDZIO"},
-    {"title": "Кадилак", "artist": "DZIDZIO"},
-    {"title": "Я і Сара", "artist": "DZIDZIO"},
-    {"title": "Маніфест", "artist": "Артем Пивоваров"},
-    {"title": "Очі", "artist": "Артем Пивоваров"},
-    {"title": "Батьківська хата", "artist": "Заліско"},
-    {"title": "Долоньки", "artist": "Ірина Федишин"},
-    {"title": "Цвіте калина", "artist": "Ірина Федишин"},
-    {"title": "Тюльпани", "artist": "Ірина Федишин"},
-    {"title": "Моя земля", "artist": "Катерина Бужинська"},
-    {"title": "Україна — це ми", "artist": "Катерина Бужинська"},
-    {"title": "Перемога", "artist": "Наталія Бучинська"},
-    {"title": "Моя Україна", "artist": "Наталія Бучинська"},
-    {"title": "Грішна кохана", "artist": "Н. Бучинська"},
-    {"title": "Шоколадний ведмедик", "artist": "Наталія Май"},
-    {"title": "Мамина сорочка", "artist": "Наталія Май"},
-    {"title": "Червона калина", "artist": "Хливнюк & Андрій"},
-    {"title": "Біля тополі", "artist": "SHUMEI"},
-    {"title": "Тривога", "artist": "SHUMEI"},
-    {"title": "Мальви", "artist": "SHUMEI / Ані Лорак"},
-    {"title": "Колискова", "artist": "SHUMEI"},
-    {"title": "Погляд", "artist": "YAKTAK feat. SOBOL"},
-    {"title": "Силует", "artist": "YAKTAK"},
-    {"title": "Листи", "artist": "YAKTAK"},
-    {"title": "Уночі", "artist": "YAKTAK"},
-    {"title": "Чекаю", "artist": "KOLA"},
-    {"title": "Чи разом?", "artist": "KOLA"},
-    {"title": "Тебе-собі", "artist": "KOLA"},
-    {"title": "Інші ми", "artist": "KOLA"},
-    {"title": "Липа", "artist": "KOLA"},
-    {"title": "Непереможна", "artist": "MamaRika"},
-    {"title": "Сину", "artist": "MamaRika"},
-    {"title": "За зорею", "artist": "MamaRika"},
-    {"title": "Ти щаслива будеш", "artist": "Анна Трінчер"},
-    {"title": "Очі", "artist": "Анна Трінчер"},
-    {"title": "Колоски", "artist": "Анна Трінчер"},
-    {"title": "Човен", "artist": "Один в каное"},
-    {"title": "У мене немає дому", "artist": "Один в каное"},
-    {"title": "Пообіцяй мені", "artist": "Один в каное"},
-    {"title": "Україна", "artist": "Тарас Петриненко"},
-    {"title": "Пісня про пісню", "artist": "Тарас Петриненко"},
-    {"title": "Там, під львівським замком", "artist": "Народна"},
-    {"title": "Ой, чий то кінь стоїть", "artist": "Народна"},
-    {"title": "Під облачком", "artist": "Народна"},
-    {"title": "Лента за лентою", "artist": "Повстанська"},
-    {"title": "Гей, соколи", "artist": "Народна"},
-    {"title": "Ой хмелю, мій хмелю", "artist": "Народна"},
-    {"title": "Горіла лампа", "artist": "Народна"},
-    {"title": "Квітка", "artist": "Tember Blanche"},
-    {"title": "Про весну", "artist": "Tember Blanche"},
-    {"title": "Вечорниці", "artist": "Tember Blanche"},
-    {"title": "Сонце", "artist": "Крихітка"},
-    {"title": "Ангели", "artist": "Lama"},
-    {"title": "Знаєш як хочеться жити", "artist": "Мотор'ролла"},
-    {"title": "8-й колір", "artist": "Мотор'ролла"},
-    {"title": "Сам собі країна", "artist": "Скрябін"},
-    {"title": "Люди як кораблі", "artist": "Скрябін"},
-    {"title": "Холодно", "artist": "Океан Ельзи"},
-    {"title": "Зелені очі", "artist": "Океан Ельзи"},
-    {"title": "Майже весна", "artist": "Океан Ельзи"},
-    {"title": "Кішка", "artist": "Океан Ельзи"},
-    {"title": "Вище неба", "artist": "Океан Ельзи"},
-    {"title": "На небі", "artist": "Океан Ельзи"},
-    {"title": "Все буде добре", "artist": "Океан Ельзи"},
-    {"title": "Не твоя війна", "artist": "Океан Ельзи"},
-    {"title": "Я так хочу до тебе", "artist": "Океан Ельзи"},
-    {"title": "Дякую", "artist": "Океан Ельзи"},
-    {"title": "Осінь", "artist": "Океан Ельзи"},
-    {"title": "Минає день, минає ніч", "artist": "Микола Мозговий"},
-    {"title": "Материнська любов", "artist": "Микола Мозговий"},
-    {"title": "Краю мій рідний", "artist": "Микола Мозговий"},
-    {"title": "Горобина ніч", "artist": "Оксана Білозір"},
-    {"title": "Україночка", "artist": "Оксана Білозір"},
-    {"title": "Коханий", "artist": "Квітка Цісик"},
-    {"title": "Я піду в далекі гори", "artist": "Квітка Цісик"},
-    {"title": "Де ти тепер", "artist": "Квітка Цісик"},
-    {"title": "Ой верше, мій верше", "artist": "Квітка Цісик"},
-    {"title": "Місто", "artist": "ONUKA"},
-    {"title": "Strum", "artist": "ONUKA"},
-    {"title": "Zenit", "artist": "ONUKA"},
-    {"title": "Колискова", "artist": "Один в каное"},
-    {"title": "Ікони", "artist": "Антитіла"},
-    {"title": "Кіно", "artist": "Антитіла"},
-    {"title": "Подих", "artist": "Jamala"},
-    {"title": "1944", "artist": "Jamala"},
-    {"title": "Крила", "artist": "Jamala"},
-    {"title": "Шлях додому", "artist": "Jamala"},
-    {"title": "Ніченькою", "artist": "Тіна Кароль"},
-    {"title": "Пупсик", "artist": "Тіна Кароль"},
-    {"title": "Show me your love", "artist": "Тіна Кароль"},
-    {"title": "Україна — це ти", "artist": "Тіна Кароль"},
-    {"title": "Намалюю тобі зорі", "artist": "Тіна Кароль"},
-    {"title": "Вище хмар", "artist": "Тіна Кароль"},
-    {"title": "Полюс притяжения", "artist": "Тіна Кароль"},
-    {"title": "Сдаться ты всегда успеешь", "artist": "Тіна Кароль"},
-    {"title": "Вільна", "artist": "Тіна Кароль & Юлія Саніна"},
-    {"title": "Журавлі", "artist": "The HARDKISS"},
-    {"title": "Маяк", "artist": "The HARDKISS"},
-    {"title": "Кораблі", "artist": "The HARDKISS"},
-    {"title": "Мелодія", "artist": "The HARDKISS"},
-    {"title": "Прізвище", "artist": "The HARDKISS"},
-    {"title": "Все було так", "artist": "The HARDKISS"},
-    {"title": "Антарктида", "artist": "The HARDKISS"},
-    {"title": "Серце", "artist": "The HARDKISS"},
-    {"title": "Коханці", "artist": "The HARDKISS"},
-    {"title": "Гора", "artist": "The HARDKISS"},
-    {"title": "Кобра", "artist": "The HARDKISS feat. MONATIK"},
-    {"title": "Кружить", "artist": "MONATIK"},
-    {"title": "Сильно", "artist": "MONATIK"},
-    {"title": "Вечериночка", "artist": "MONATIK & Вєрка Сердючка"},
-    {"title": "Крізь плач", "artist": "MONATIK"},
-    {"title": "Запалювати", "artist": "MONATIK"},
-    {"title": "Все ладно", "artist": "MONATIK"},
-    {"title": "Мокра дівчина", "artist": "MONATIK"},
-    {"title": "То, от чего без ума", "artist": "MONATIK"},
-    {"title": "Каждый раз", "artist": "MONATIK"},
-    {"title": "Минають дні", "artist": "MONATIK"},
-    {"title": "Гуляночка", "artist": "Вєрка Сердючка"},
-    {"title": "Все будет хорошо", "artist": "Вєрка Сердючка"},
-    {"title": "Дольче Габбана", "artist": "Вєрка Сердючка"},
-    {"title": "Чита дріта", "artist": "Вєрка Сердючка"},
-    {"title": "Dancing Lasha Tumbai", "artist": "Вєрка Сердючка"},
-    {"title": "Я не поняла", "artist": "Вєрка Сердючка"},
-    {"title": "Сонце нам сяє", "artist": "Вєрка Сердючка"},
-    {"title": "Новорічна", "artist": "Вєрка Сердючка"},
-    {"title": "Тук тук тук", "artist": "Вєрка Сердючка"},
-    {"title": "Гоп-гоп", "artist": "Вєрка Сердючка"}
-]
+<div class="container">
+    <h1>🎤 Наш Караоке Каталог</h1>
+    <input type="text" id="search" class="search-box" placeholder="Пошук пісні або артиста...">
+    
+    <div id="catalog">
+        <div class="song-item"><span class="title">Червона рута</span><span class="artist">В. Івасюк</span></div>
+        <div class="song-item"><span class="title">Цей сон</span><span class="artist">С. Гіга</span></div>
+        <div class="song-item"><span class="title">Водограй</span><span class="artist">В. Івасюк</span></div>
+        <div class="song-item"><span class="title">Яворина</span><span class="artist">С. Гіга</span></div>
+        <div class="song-item"><span class="title">А липи цвітуть</span><span class="artist">І. Бобул</span></div>
+        <div class="song-item"><span class="title">Ніч яка місячна</span><span class="artist">Народна</span></div>
+        <div class="song-item"><span class="title">Несе Галя воду</span><span class="artist">Народна</span></div>
+        <div class="song-item"><span class="title">Ой у вишневому саду</span><span class="artist">Народна</span></div>
+        <div class="song-item"><span class="title">Ти ж мене підманула</span><span class="artist">Народна</span></div>
+        <div class="song-item"><span class="title">Цвіте терен</span><span class="artist">Народна</span></div>
+        <div class="song-item"><span class="title">Гаї шумлять</span><span class="artist">Народна</span></div>
+        <div class="song-item"><span class="title">Марічка</span><span class="artist">О. Пономарьов</span></div>
+        <div class="song-item"><span class="title">Варто чи ні</span><span class="artist">О. Пономарьов</span></div>
+        <div class="song-item"><span class="title">Я люблю тільки тебе</span><span class="artist">О. Пономарьов</span></div>
+        <div class="song-item"><span class="title">Україна - це ти</span><span class="artist">Тіна Кароль</span></div>
+        <div class="song-item"><span class="title">Ніченька</span><span class="artist">Тіна Кароль</span></div>
+        <div class="song-item"><span class="title">Моя Україна</span><span class="artist">Наталія Бучинська</span></div>
+        <div class="song-item"><span class="title">Грішна кохати</span><span class="artist">Наталія Бучинська</span></div>
+        <div class="song-item"><span class="title">Чорнії брови, карії очі</span><span class="artist">Романс</span></div>
+        <div class="song-item"><span class="title">Ой Марічко, Чичері</span><span class="artist">Народна</span></div>
+        <div class="song-item"><span class="title">Місяць на небі</span><span class="artist">Народна</span></div>
+        <div class="song-item"><span class="title">Ой чий то кінь стоїть</span><span class="artist">Народна</span></div>
+        <div class="song-item"><span class="title">Козацька воля</span><span class="artist">Народна</span></div>
+        <div class="song-item"><span class="title">Долоньки</span><span class="artist">Ірина Федишин</span></div>
+        <div class="song-item"><span class="title">Біля серця</span><span class="artist">KOLA</span></div>
+<div class="song-item"><span class="title">Порічка</span><span class="artist">YAKTAK</span></div>
+<div class="song-item"><span class="title">Сила</span><span class="artist">YAKTAK</span></div>
+<div class="song-item"><span class="title">Уночі</span><span class="artist">YAKTAK</span></div>
+<div class="song-item"><span class="title">Чекаю вдома</span><span class="artist">YAKTAK & DOVI</span></div>
+<div class="song-item"><span class="title">Квіти</span><span class="artist">KOLA</span></div>
+<div class="song-item"><span class="title">Чи разом?</span><span class="artist">KOLA</span></div>
+<div class="song-item"><span class="title">Дочекаюсь</span><span class="artist">KOLA</span></div>
+<div class="song-item"><span class="title">Йо-Йо</span><span class="artist">Настя Борщ & Шугар</span></div>
+<div class="song-item"><span class="title">Тьотя</span><span class="artist">Шугар</span></div>
+<div class="song-item"><span class="title">Крила лелеки</span><span class="artist">Нікіта Кисельов</span></div>
+<div class="song-item"><span class="title">Смарагдове небо</span><span class="artist">DREVO</span></div>
+<div class="song-item"><span class="title">Погляди</span><span class="artist">Volkanov</span></div>
+<div class="song-item"><span class="title">Намалюю</span><span class="artist">Volkanov</span></div>
+<div class="song-item"><span class="title">Тебе знайшов</span><span class="artist">Volkanov</span></div>
+<div class="song-item"><span class="title">Плакала</span><span class="artist">KAZKA</span></div>
+<div class="song-item"><span class="title">Свята</span><span class="artist">KAZKA</span></div>
+<div class="song-item"><span class="title">Кохаю</span><span class="artist">SHUMEI</span></div>
+<div class="song-item"><span class="title">Волоси</span><span class="artist">SHUMEI</span></div>
+<div class="song-item"><span class="title">Маніфест</span><span class="artist">Артем Пивоваров</span></div>
+<div class="song-item"><span class="title">Думи</span><span class="artist">Пивоваров & DOROFEEVA</span></div>
+<div class="song-item"><span class="title">Щоб не було</span><span class="artist">DOROFEEVA</span></div>
+<div class="song-item"><span class="title">Кохаю, але не зовсім</span><span class="artist">DOROFEEVA</span></div>
+<div class="song-item"><span class="title">Олені</span><span class="artist">ТІК</span></div>
+<div class="song-item"><span class="title">Вчителька</span><span class="artist">ТІК</span></div>
+<div class="song-item"><span class="title">Кадилак</span><span class="artist">DZIDZIO</span></div>
+<div class="song-item"><span class="title">Я і Сара</span><span class="artist">DZIDZIO</span></div>
+<div class="song-item"><span class="title">Кружляє</span><span class="artist">MONATIK</span></div>
+<div class="song-item"><span class="title">Так міло</span><span class="artist">Jerry Heil</span></div>
+<div class="song-item"><span class="title">Бальзам</span><span class="artist">Nikow</span></div>
+<div class="song-item"><span class="title">мультивсесвіт</span><span class="artist">Nikow</span></div>
+<div class="song-item"><span class="title">Мама Галичина</span><span class="artist">Карна</span></div>
+<div class="song-item"><span class="title">Не П'яна - Закохана</span><span class="artist">Alena Omargalieva</span></div>
+<div class="song-item"><span class="title">Мужчина</span><span class="artist">Alena Omargalieva</span></div>
+<div class="song-item"><span class="title">СОЛОДКІ 16</span><span class="artist">TARABAROVA</span></div>
+<div class="song-item"><span class="title">Світло</span><span class="artist">TARABAROVA</span></div>
+<div class="song-item"><span class="title">Прикуті</span><span class="artist">KRISTONKO</span></div>
+<div class="song-item"><span class="title">Одна Єдина</span><span class="artist">Софія Нерсесян</span></div>
+<div class="song-item"><span class="title">Земля, Вода</span><span class="artist">Софія Нерсесян</span></div>
+<div class="song-item"><span class="title">Це ще не кінець</span><span class="artist">МУР</span></div>
+<div class="song-item"><span class="title">1 травня 1986</span><span class="artist">МУР</span></div>
+<div class="song-item"><span class="title">Старі фотографії</span><span class="artist">Скрябін</span></div>
+<div class="song-item"><span class="title">Мам</span><span class="artist">Скрябін</span></div>
+<div class="song-item"><span class="title">Спи собі сама</span><span class="artist">Скрябін</span></div>
+<div class="song-item"><span class="title">Вона</span><span class="artist">Плач Єремії</span></div>
+<div class="song-item"><span class="title">Без бою</span><span class="artist">Океан Ельзи</span></div>
+<div class="song-item"><span class="title">Обійми</span><span class="artist">Океан Ельзи</span></div>
+<div class="song-item"><span class="title">Відпусти</span><span class="artist">Океан Ельзи</span></div>
+<div class="song-item"><span class="title">Холодно</span><span class="artist">Океан Ельзи</span></div>
+<div class="song-item"><span class="title">Квіти в волоссі</span><span class="artist">Бумбокс</span></div>
+<div class="song-item"><span class="title">Люди</span><span class="artist">Бумбокс</span></div>
+<div class="song-item"><span class="title">Фортеця Бахмут</span><span class="artist">Антитіла</span></div>
+<div class="song-item"><span class="title">TDME</span><span class="artist">Антитіла</span></div>
+<div class="song-item"><span class="title">Вартові галактики</span><span class="artist">The HARDKISS</span></div>
+<div class="song-item"><span class="title">Журавлі</span><span class="artist">The HARDKISS</span></div>
+<div class="song-item"><span class="title">Човен</span><span class="artist">Один в каное</span></div>
+<div class="song-item"><span class="title">У мене немає дому</span><span class="artist">Один в каное</span></div>
+<div class="song-item"><span class="title">Тримай</span><span class="artist">Христина Соловій</span></div>
 
-print(f"Total compiled songs: {len(songs)}")
+        
+
